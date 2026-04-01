@@ -1,13 +1,21 @@
+# Alumni Management API
 
-# ServerSide CW1
+## Setup Instructions
 
-## Setup
+1. Install dependencies:
+npm install
 
-1. npm install
-2. Create DB
-3. Run schema.sql
-4. Setup .env from .env.example
-5. npm run dev
+2. Create database:
+CREATE DATABASE serverside_cw1;
 
-Swagger:
+3. Run schema:
+psql -U postgres -d serverside_cw1 -f schema.sql
+
+4. Configure environment:
+Rename .env.example to .env and fill in values
+
+5. Start server:
+npm run dev
+
+## API Documentation
 http://localhost:5001/api-docs

@@ -16,7 +16,11 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5001'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(helmet());
 
 app.use(rateLimit({ windowMs: 15*60*1000, max: 100 }));
@@ -38,7 +42,19 @@ app.get('/api/featured-alumnus', async (req, res) => {
 const specs = swaggerJsdoc({
   definition: {
     openapi: '3.0.0',
-    info: { title: 'Alumni API', version: '1.0.0' }
+    info: {
+      title: 'Alumni API',
+      version: '1.0.0'
+    },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
+        }
+      }
+    }
   },
   apis: ['./routes/*.js']
 });
