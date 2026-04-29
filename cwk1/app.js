@@ -27,7 +27,15 @@ app.use(cors({
 }));
 app.use(helmet());
 
-app.use(rateLimit({ windowMs: 15*60*1000, max: 100 }));
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: {
+    message: "Too many requests, please try again later."
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+}));
 
 app.use(logger);
 

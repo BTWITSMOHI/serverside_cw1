@@ -105,20 +105,41 @@ exports.logoutUser = async(req,res)=>{
   res.json({message:'logout'});
 };
 
-exports.requestPasswordReset = async(req,res)=>{
-  const {email} = req.body;
+exports.requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
 
-  const user = await pool.query('SELECT * FROM users WHERE email=$1',[email]);
+    const user = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
 
-  const token = crypto.randomBytes(32).toString('hex');
+    
+    if (user.rows.length === 0) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
 
-  await pool.query(
-    `INSERT INTO tokens(user_id,token,token_type,expires_at)
-     VALUES($1,$2,'reset',NOW()+INTERVAL '1 hour')`,
-    [user.rows[0].id,token]
-  );
+    const userId = user.rows[0].id;
 
-  res.json({resetToken:token});
+    const token = crypto.randomBytes(32).toString("hex");
+
+    await pool.query(
+      `INSERT INTO tokens (user_id, token, token_type, expires_at)
+       VALUES ($1, $2, 'password_reset', NOW() + INTERVAL '1 hour')`,
+      [userId, token]
+    );
+
+    res.json({
+      message: "Password reset token generated",
+      resetToken: token
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 exports.resetPassword = async(req,res)=>{
