@@ -17,9 +17,13 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5001'],
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:5001'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
 }));
 app.use(helmet());
 
@@ -58,6 +62,10 @@ const specs = swaggerJsdoc({
   },
   apis: ['./routes/*.js']
 });
+
+const analyticsRoutes = require('./routes/analyticsRoutes');
+
+app.use('/api/analytics', analyticsRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
