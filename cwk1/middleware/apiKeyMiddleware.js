@@ -6,7 +6,9 @@ module.exports = function apiKeyMiddleware(requiredPermission) {
       const apiKey = req.headers["x-api-key"];
 
       if (!apiKey) {
-        return res.status(401).json({ message: "API key missing" });
+        return res.status(401).json({
+          message: "API key required",
+        });
       }
 
       const result = await pool.query(
@@ -15,40 +17,46 @@ module.exports = function apiKeyMiddleware(requiredPermission) {
       );
 
       if (result.rows.length === 0) {
-        return res.status(403).json({ message: "Invalid API key" });
+        return res.status(403).json({
+          message: "Invalid API key",
+        });
       }
 
       const key = result.rows[0];
 
-      // Check permission
       if (!key.permissions.includes(requiredPermission)) {
         return res.status(403).json({
-          message: "Insufficient permissions",
+          message: "Permission denied",
         });
       }
 
-      //Attach key to request
-      req.apiKey = key;
-
-      //Update last used
       await pool.query(
-        "UPDATE api_keys SET last_used_at = NOW() WHERE id = $1",
+        "UPDATE api_keys SET last_used_at = CURRENT_TIMESTAMP WHERE id = $1",
         [key.id]
       );
 
-      //LOG API USAGE AFTER RESPONSE FINISHES
+      req.apiKey = key;
+
+      // Logs the API key usage after the response is completed,
+      // so the final HTTP status code is recorded correctly.
       res.on("finish", () => {
-        pool.query(
-          `INSERT INTO api_usage_logs (api_key_id, endpoint, method, status_code)
-           VALUES ($1, $2, $3, $4)`,
-          [key.id, req.originalUrl, req.method, res.statusCode]
-        ).catch(console.error);
+        pool
+          .query(
+            `INSERT INTO api_usage_logs (api_key_id, endpoint, method, status_code)
+             VALUES ($1, $2, $3, $4)`,
+            [key.id, req.originalUrl, req.method, res.statusCode]
+          )
+          .catch((err) => {
+            console.error("usage log insert failed:", err);
+          });
       });
 
       next();
     } catch (error) {
-      console.error("API Key Middleware Error:", error);
-      res.status(500).json({ message: "Server error" });
+      console.error("API KEY MIDDLEWARE ERROR:", error);
+      return res.status(500).json({
+        message: "Server error",
+      });
     }
   };
 };
