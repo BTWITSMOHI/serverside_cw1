@@ -1,28 +1,37 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import AuthLayout from "../components/AuthLayout";
 
 export default function RequestReset() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
   const [resetToken, setResetToken] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRequestReset = async (e) => {
     e.preventDefault();
     setMessage("");
+    setIsError(false);
     setResetToken("");
+    setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5001/api/auth/request-password-reset", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email })
-      });
+      const res = await fetch(
+        "http://localhost:5001/api/auth/request-password-reset",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email })
+        }
+      );
 
       const data = await res.json();
 
       if (!res.ok) {
+        setIsError(true);
         setMessage(data.message || "Reset request failed");
         return;
       }
@@ -31,56 +40,66 @@ export default function RequestReset() {
       setResetToken(data.resetToken || "");
     } catch (error) {
       console.error(error);
+      setIsError(true);
       setMessage("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "40px", maxWidth: "450px", margin: "auto" }}>
-      <h2>Request Password Reset</h2>
+    <AuthLayout
+      eyebrow="Account recovery"
+      title="Reset your password"
+      subtitle="Enter your university email and we&apos;ll generate a one-time reset token."
+    >
+      <form onSubmit={handleRequestReset} className="auth-form">
+        <div className="field">
+          <label htmlFor="email" className="field-label">
+            University email
+          </label>
+          <input
+            id="email"
+            type="email"
+            className="input"
+            placeholder="you@university.ac.uk"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
 
-      <form onSubmit={handleRequestReset}>
-        <input
-          type="email"
-          placeholder="University email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-        />
+        {message && (
+          <div className={isError ? "alert alert-error" : "alert alert-success"}>
+            {message}
+          </div>
+        )}
 
         <button
           type="submit"
-          style={{
-            width: "100%",
-            padding: "10px",
-            background: "#F59E0B",
-            color: "white",
-            border: "none",
-            borderRadius: "6px"
-          }}
+          className="btn btn-primary btn-block"
+          disabled={loading}
         >
-          Request Reset
+          {loading ? "Generating..." : "Request reset token"}
         </button>
       </form>
 
-      {message && <p>{message}</p>}
-
       {resetToken && (
-        <div style={{ marginTop: "15px", padding: "10px", background: "#F3F4F6" }}>
-          <p><strong>Reset Token:</strong></p>
-          <p style={{ wordBreak: "break-all" }}>{resetToken}</p>
-          <p>Copy this token and continue to reset password.</p>
+        <div className="token-box">
+          <strong>Reset token</strong>
+          <code>{resetToken}</code>
+          <span>Copy this token and continue to reset your password.</span>
         </div>
       )}
 
-      <p>
-        Continue to <Link to="/reset-password">Reset Password</Link>
-      </p>
-
-      <p>
-        Back to <Link to="/">Login</Link>
-      </p>
-    </div>
+      <div className="auth-meta">
+        <span>
+          Continue to <Link to="/reset-password">Reset password</Link>
+        </span>
+        <span>
+          Back to <Link to="/">Sign in</Link>
+        </span>
+      </div>
+    </AuthLayout>
   );
 }

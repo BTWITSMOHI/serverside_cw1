@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import AuthLayout from "../components/AuthLayout";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:5001/api/auth/login", {
@@ -32,60 +35,70 @@ export default function Login() {
     } catch (err) {
       console.error(err);
       setError("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "40px", maxWidth: "450px", margin: "auto" }}>
-      <h2>Dashboard Login</h2>
+    <AuthLayout
+      eyebrow="Secure access"
+      title="Welcome back"
+      subtitle="Sign in to view live alumni intelligence and reporting."
+    >
+      <form onSubmit={handleLogin} className="auth-form">
+        <div className="field">
+          <label htmlFor="email" className="field-label">
+            University email
+          </label>
+          <input
+            id="email"
+            type="email"
+            className="input"
+            placeholder="you@university.ac.uk"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
 
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="University email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-        />
+        <div className="field">
+          <div className="auth-row">
+            <label htmlFor="password" className="field-label">
+              Password
+            </label>
+            <Link to="/request-reset">Forgot password?</Link>
+          </div>
+          <input
+            id="password"
+            type="password"
+            className="input"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-        />
+        {error && <div className="alert alert-error">{error}</div>}
 
         <button
           type="submit"
-          style={{
-            width: "100%",
-            padding: "10px",
-            background: "#3B82F6",
-            color: "white",
-            border: "none",
-            borderRadius: "6px"
-          }}
+          className="btn btn-primary btn-block"
+          disabled={loading}
         >
-          Login
+          {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <p>
-        No account? <Link to="/register">Register</Link>
-      </p>
-
-      <p>
-        Verify email? <Link to="/verify-email">Verify Email</Link>
-      </p>
-
-      <p>
-        Forgot password? <Link to="/request-reset">Reset Password</Link>
-      </p>
-    </div>
+      <div className="auth-meta">
+        <span>
+          Don&apos;t have an account? <Link to="/register">Create one</Link>
+        </span>
+        <span>
+          Need to verify? <Link to="/verify-email">Verify email</Link>
+        </span>
+      </div>
+    </AuthLayout>
   );
 }

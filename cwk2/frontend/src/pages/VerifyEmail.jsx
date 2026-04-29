@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import AuthLayout from "../components/AuthLayout";
 
 export default function VerifyEmail() {
   const [token, setToken] = useState("");
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleVerify = async (e) => {
     e.preventDefault();
     setMessage("");
+    setIsError(false);
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:5001/api/auth/verify-email", {
@@ -21,6 +26,7 @@ export default function VerifyEmail() {
       const data = await res.json();
 
       if (!res.ok) {
+        setIsError(true);
         setMessage(data.message || "Verification failed");
         return;
       }
@@ -28,44 +34,55 @@ export default function VerifyEmail() {
       setMessage(data.message || "Email verified successfully");
     } catch (error) {
       console.error(error);
+      setIsError(true);
       setMessage("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "40px", maxWidth: "450px", margin: "auto" }}>
-      <h2>Verify Email</h2>
+    <AuthLayout
+      eyebrow="Verification"
+      title="Verify your email"
+      subtitle="Paste the verification token sent to you to activate your account."
+    >
+      <form onSubmit={handleVerify} className="auth-form">
+        <div className="field">
+          <label htmlFor="token" className="field-label">
+            Verification token
+          </label>
+          <input
+            id="token"
+            type="text"
+            className="input"
+            placeholder="Paste your token here"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            required
+          />
+        </div>
 
-      <form onSubmit={handleVerify}>
-        <input
-          type="text"
-          placeholder="Paste verification token"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          required
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-        />
+        {message && (
+          <div className={isError ? "alert alert-error" : "alert alert-success"}>
+            {message}
+          </div>
+        )}
 
         <button
           type="submit"
-          style={{
-            width: "100%",
-            padding: "10px",
-            background: "#10B981",
-            color: "white",
-            border: "none",
-            borderRadius: "6px"
-          }}
+          className="btn btn-accent btn-block"
+          disabled={loading}
         >
-          Verify Email
+          {loading ? "Verifying..." : "Verify email"}
         </button>
       </form>
 
-      {message && <p>{message}</p>}
-
-      <p>
-        Back to <Link to="/">Login</Link>
-      </p>
-    </div>
+      <div className="auth-meta">
+        <span>
+          Back to <Link to="/">Sign in</Link>
+        </span>
+      </div>
+    </AuthLayout>
   );
 }

@@ -1,16 +1,21 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import AuthLayout from "../components/AuthLayout";
 
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
   const [verificationToken, setVerificationToken] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setMessage("");
+    setIsError(false);
     setVerificationToken("");
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:5001/api/auth/register", {
@@ -24,6 +29,7 @@ export default function Register() {
       const data = await res.json();
 
       if (!res.ok) {
+        setIsError(true);
         setMessage(data.message || "Registration failed");
         return;
       }
@@ -32,65 +38,81 @@ export default function Register() {
       setVerificationToken(data.verificationToken || "");
     } catch (error) {
       console.error(error);
+      setIsError(true);
       setMessage("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "40px", maxWidth: "450px", margin: "auto" }}>
-      <h2>Register</h2>
+    <AuthLayout
+      eyebrow="Get started"
+      title="Create your account"
+      subtitle="Register with your university email to access the dashboard."
+    >
+      <form onSubmit={handleRegister} className="auth-form">
+        <div className="field">
+          <label htmlFor="email" className="field-label">
+            University email
+          </label>
+          <input
+            id="email"
+            type="email"
+            className="input"
+            placeholder="you@university.ac.uk"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
 
-      <form onSubmit={handleRegister}>
-        <input
-          type="email"
-          placeholder="University email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-        />
+        <div className="field">
+          <label htmlFor="password" className="field-label">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            className="input"
+            placeholder="At least 8 characters, e.g. Password123"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          placeholder="Password e.g. Password123"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-        />
+        {message && (
+          <div className={isError ? "alert alert-error" : "alert alert-success"}>
+            {message}
+          </div>
+        )}
 
         <button
           type="submit"
-          style={{
-            width: "100%",
-            padding: "10px",
-            background: "#3B82F6",
-            color: "white",
-            border: "none",
-            borderRadius: "6px"
-          }}
+          className="btn btn-primary btn-block"
+          disabled={loading}
         >
-          Register
+          {loading ? "Creating account..." : "Create account"}
         </button>
       </form>
 
-      {message && <p>{message}</p>}
-
       {verificationToken && (
-        <div style={{ marginTop: "15px", padding: "10px", background: "#F3F4F6" }}>
-          <p><strong>Verification Token:</strong></p>
-          <p style={{ wordBreak: "break-all" }}>{verificationToken}</p>
-          <p>Copy this token and verify your email.</p>
+        <div className="token-box">
+          <strong>Verification token</strong>
+          <code>{verificationToken}</code>
+          <span>Copy this token and continue to verify your email.</span>
         </div>
       )}
 
-      <p>
-        Already have an account? <Link to="/">Login</Link>
-      </p>
-
-      <p>
-        Verify email? <Link to="/verify-email">Go to verification</Link>
-      </p>
-    </div>
+      <div className="auth-meta">
+        <span>
+          Already have an account? <Link to="/">Sign in</Link>
+        </span>
+        <span>
+          Have a token? <Link to="/verify-email">Verify email</Link>
+        </span>
+      </div>
+    </AuthLayout>
   );
 }

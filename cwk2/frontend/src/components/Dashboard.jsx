@@ -31,6 +31,64 @@ ChartJS.register(
   Legend
 );
 
+/* Brand-aligned chart palette (indigo + neutrals + emerald) */
+const PALETTE = {
+  primary: "#4f46e5",
+  primarySoft: "rgba(79, 70, 229, 0.15)",
+  accent: "#059669",
+  warning: "#d97706",
+  danger: "#e11d48",
+  slate: "#64748b",
+  multi: [
+    "#4f46e5",
+    "#059669",
+    "#d97706",
+    "#e11d48",
+    "#0ea5e9",
+    "#7c3aed",
+    "#f97316",
+    "#14b8a6",
+  ],
+};
+
+const baseChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 800 },
+  plugins: {
+    legend: {
+      labels: {
+        color: "#475569",
+        font: { family: "Inter, sans-serif", size: 12 },
+        boxWidth: 12,
+        boxHeight: 12,
+        padding: 12,
+      },
+    },
+    tooltip: {
+      backgroundColor: "#0f172a",
+      titleFont: { family: "Inter, sans-serif", weight: "600" },
+      bodyFont: { family: "Inter, sans-serif" },
+      padding: 10,
+      cornerRadius: 6,
+    },
+  },
+};
+
+const cartesianScales = (xTitle, yTitle) => ({
+  x: {
+    title: { display: true, text: xTitle, color: "#64748b" },
+    grid: { color: "#f1f5f9" },
+    ticks: { color: "#64748b", font: { size: 11 } },
+  },
+  y: {
+    title: { display: true, text: yTitle, color: "#64748b" },
+    beginAtZero: true,
+    grid: { color: "#f1f5f9" },
+    ticks: { color: "#64748b", font: { size: 11 } },
+  },
+});
+
 function downloadChart(chartId, fileName) {
   const canvas = document.getElementById(chartId);
 
@@ -44,6 +102,133 @@ function downloadChart(chartId, fileName) {
   link.href = canvas.toDataURL("image/png");
   link.click();
 }
+
+/* Tiny inline icon helpers */
+const Icon = ({ d, ...props }) => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    {...props}
+  >
+    {d}
+  </svg>
+);
+
+const navItems = [
+  {
+    to: "/dashboard",
+    key: "overview",
+    label: "Overview",
+    icon: (
+      <Icon
+        d={
+          <>
+            <rect x="3" y="3" width="7" height="9" rx="1" />
+            <rect x="14" y="3" width="7" height="5" rx="1" />
+            <rect x="14" y="12" width="7" height="9" rx="1" />
+            <rect x="3" y="16" width="7" height="5" rx="1" />
+          </>
+        }
+      />
+    ),
+  },
+  {
+    to: "/programme",
+    key: "programme",
+    label: "By Programme",
+    icon: (
+      <Icon
+        d={
+          <>
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+            <path d="M6 12v5c0 1.66 4 3 6 3s6-1.34 6-3v-5" />
+          </>
+        }
+      />
+    ),
+  },
+  {
+    to: "/graduation",
+    key: "graduation",
+    label: "By Graduation Year",
+    icon: (
+      <Icon
+        d={
+          <>
+            <path d="M3 3v18h18" />
+            <path d="M7 14l4-4 4 4 5-6" />
+          </>
+        }
+      />
+    ),
+  },
+  {
+    to: "/industry",
+    key: "industry",
+    label: "By Industry",
+    icon: (
+      <Icon
+        d={
+          <>
+            <path d="M3 21V8l9-5 9 5v13" />
+            <path d="M9 21v-6h6v6" />
+          </>
+        }
+      />
+    ),
+  },
+  {
+    to: "/usage",
+    key: "usage",
+    label: "API Usage",
+    icon: (
+      <Icon
+        d={
+          <>
+            <path d="M12 20v-6" />
+            <path d="M6 20V10" />
+            <path d="M18 20V4" />
+          </>
+        }
+      />
+    ),
+  },
+];
+
+const viewMeta = {
+  overview: {
+    title: "Overview",
+    subtitle:
+      "Top-level alumni intelligence: graduate outcomes, industries, employers, certifications, programme trends, and API usage.",
+  },
+  programme: {
+    title: "Alumni by Programme",
+    subtitle:
+      "Compare alumni outcomes across academic programmes to identify engagement and tracking opportunities.",
+  },
+  graduation: {
+    title: "Alumni by Graduation Year",
+    subtitle:
+      "Cohort trends across graduation years to understand recent and historical alumni representation.",
+  },
+  industry: {
+    title: "Alumni by Industry Sector",
+    subtitle:
+      "Industries where alumni are currently employed to spot emerging destination sectors.",
+  },
+  usage: {
+    title: "API Usage Statistics",
+    subtitle:
+      "Monitor endpoint activity and API key access patterns for monitoring and security analysis.",
+  },
+};
 
 export default function Dashboard({ view = "overview" }) {
   const [summary, setSummary] = useState(null);
@@ -130,9 +315,10 @@ export default function Dashboard({ view = "overview" }) {
 
   if (loading) {
     return (
-      <div style={{ padding: "40px", textAlign: "center" }}>
-        <h2>Loading Dashboard...</h2>
-        <p>Please wait while analytics data is loaded.</p>
+      <div className="loading-shell">
+        <div className="spinner" aria-hidden="true" />
+        <h2 style={{ fontSize: 18 }}>Loading dashboard</h2>
+        <p className="muted">Fetching analytics data, please wait&hellip;</p>
       </div>
     );
   }
@@ -177,22 +363,16 @@ export default function Dashboard({ view = "overview" }) {
       {
         label: "Number of Alumni",
         data: filteredProgrammes.map((item) => Number(item.count)),
-        backgroundColor: "#3B82F6",
+        backgroundColor: PALETTE.primary,
+        borderRadius: 6,
+        maxBarThickness: 36,
       },
     ],
   };
 
   const programmeOptions = {
-    responsive: true,
-    animation: { duration: 1000 },
-    plugins: { legend: { display: true } },
-    scales: {
-      x: { title: { display: true, text: "Programme" } },
-      y: {
-        title: { display: true, text: "Number of Alumni" },
-        beginAtZero: true,
-      },
-    },
+    ...baseChartOptions,
+    scales: cartesianScales("Programme", "Number of Alumni"),
   };
 
   const industryChart = {
@@ -201,16 +381,9 @@ export default function Dashboard({ view = "overview" }) {
       {
         label: "Industry Sector",
         data: filteredIndustries.map((item) => Number(item.count)),
-        backgroundColor: [
-          "#3B82F6",
-          "#10B981",
-          "#F59E0B",
-          "#EF4444",
-          "#8B5CF6",
-          "#06B6D4",
-          "#F97316",
-          "#EC4899",
-        ],
+        backgroundColor: PALETTE.multi,
+        borderColor: "#fff",
+        borderWidth: 2,
       },
     ],
   };
@@ -221,15 +394,9 @@ export default function Dashboard({ view = "overview" }) {
       {
         label: "Job Titles",
         data: jobs.map((item) => Number(item.count)),
-        backgroundColor: [
-          "#10B981",
-          "#3B82F6",
-          "#F59E0B",
-          "#8B5CF6",
-          "#EC4899",
-          "#6B7280",
-          "#06B6D4",
-        ],
+        backgroundColor: PALETTE.multi,
+        borderColor: "#fff",
+        borderWidth: 2,
       },
     ],
   };
@@ -240,22 +407,16 @@ export default function Dashboard({ view = "overview" }) {
       {
         label: "Alumni Count",
         data: employers.map((item) => Number(item.count)),
-        backgroundColor: "#F97316",
+        backgroundColor: PALETTE.warning,
+        borderRadius: 6,
+        maxBarThickness: 36,
       },
     ],
   };
 
   const employerOptions = {
-    responsive: true,
-    animation: { duration: 1000 },
-    plugins: { legend: { display: true } },
-    scales: {
-      x: { title: { display: true, text: "Employer" } },
-      y: {
-        title: { display: true, text: "Number of Alumni" },
-        beginAtZero: true,
-      },
-    },
+    ...baseChartOptions,
+    scales: cartesianScales("Employer", "Number of Alumni"),
   };
 
   const certificationChart = {
@@ -266,20 +427,22 @@ export default function Dashboard({ view = "overview" }) {
         data: certifications.map((c) => Number(c.count)),
         backgroundColor: certifications.map((c) => {
           const value = Number(c.count);
-          if (value >= 3) return "#EF4444";
-          if (value === 2) return "#F59E0B";
-          return "#10B981";
+          if (value >= 3) return PALETTE.danger;
+          if (value === 2) return PALETTE.warning;
+          return PALETTE.accent;
         }),
+        borderRadius: 6,
+        maxBarThickness: 36,
       },
     ],
   };
 
   const certificationOptions = {
-    responsive: true,
-    animation: { duration: 1000 },
+    ...baseChartOptions,
     plugins: {
-      legend: { display: true },
+      ...baseChartOptions.plugins,
       tooltip: {
+        ...baseChartOptions.plugins.tooltip,
         callbacks: {
           label: function (context) {
             const value = context.parsed.y;
@@ -291,13 +454,7 @@ export default function Dashboard({ view = "overview" }) {
         },
       },
     },
-    scales: {
-      x: { title: { display: true, text: "Certification" } },
-      y: {
-        title: { display: true, text: "Number of Alumni" },
-        beginAtZero: true,
-      },
-    },
+    scales: cartesianScales("Certification", "Number of Alumni"),
   };
 
   const trendChart = {
@@ -306,25 +463,21 @@ export default function Dashboard({ view = "overview" }) {
       {
         label: "Graduates",
         data: filteredTrends.map((t) => Number(t.count)),
-        borderColor: "#3B82F6",
-        backgroundColor: "rgba(59, 130, 246, 0.2)",
+        borderColor: PALETTE.primary,
+        backgroundColor: PALETTE.primarySoft,
         fill: true,
         tension: 0.4,
+        pointBackgroundColor: PALETTE.primary,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        borderWidth: 2,
       },
     ],
   };
 
   const trendOptions = {
-    responsive: true,
-    animation: { duration: 1000 },
-    plugins: { legend: { display: true } },
-    scales: {
-      x: { title: { display: true, text: "Graduation Year" } },
-      y: {
-        title: { display: true, text: "Number of Alumni" },
-        beginAtZero: true,
-      },
-    },
+    ...baseChartOptions,
+    scales: cartesianScales("Graduation Year", "Number of Alumni"),
   };
 
   const radarChart = {
@@ -333,10 +486,24 @@ export default function Dashboard({ view = "overview" }) {
       {
         label: "System Data Overview",
         data: radar.map((r) => Number(r.value)),
-        backgroundColor: "rgba(139, 92, 246, 0.2)",
-        borderColor: "#8B5CF6",
+        backgroundColor: PALETTE.primarySoft,
+        borderColor: PALETTE.primary,
+        borderWidth: 2,
+        pointBackgroundColor: PALETTE.primary,
       },
     ],
+  };
+
+  const radarOptions = {
+    ...baseChartOptions,
+    scales: {
+      r: {
+        angleLines: { color: "#e2e8f0" },
+        grid: { color: "#e2e8f0" },
+        pointLabels: { color: "#475569", font: { size: 11 } },
+        ticks: { color: "#94a3b8", backdropColor: "transparent" },
+      },
+    },
   };
 
   const usageChart = {
@@ -345,499 +512,480 @@ export default function Dashboard({ view = "overview" }) {
       {
         label: "API Calls",
         data: usage.map((u) => Number(u.count)),
-        backgroundColor: "#EF4444",
+        backgroundColor: PALETTE.danger,
+        borderRadius: 6,
+        maxBarThickness: 36,
       },
     ],
   };
 
   const usageOptions = {
-    responsive: true,
-    animation: { duration: 1000 },
-    plugins: { legend: { display: true } },
-    scales: {
-      x: { title: { display: true, text: "Endpoint" } },
-      y: {
-        title: { display: true, text: "Number of Calls" },
-        beginAtZero: true,
-      },
-    },
+    ...baseChartOptions,
+    scales: cartesianScales("Endpoint", "Number of Calls"),
   };
 
-  const buttonStyle = {
-    padding: "10px 16px",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-  };
-
-  const pngButtonStyle = {
-    marginTop: "12px",
-    padding: "8px 12px",
-    background: "#111827",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-  };
-
-  const navStyle = {
-    padding: "10px 14px",
-    borderRadius: "8px",
-    textDecoration: "none",
-    color: "#111827",
-    background: "#E5E7EB",
-    fontWeight: "600",
-  };
-
-  const activeNavStyle = {
-    ...navStyle,
-    background: "#3B82F6",
-    color: "white",
-  };
+  const meta = viewMeta[view] || viewMeta.overview;
 
   return (
-    <div className="dashboard">
-      <header
-        className="dashboard-header"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: "20px",
-        }}
-      >
-        <div>
-          <h1>Alumni Intelligence Dashboard</h1>
-          <p>
-            Alumni intelligence dashboard showing graduate outcomes, industries,
-            job roles, certifications, programme trends, and API usage
-            statistics.
-          </p>
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <span className="sidebar-brand-mark">AI</span>
+          <span>Alumni Intelligence</span>
         </div>
 
-        <button
-          onClick={handleLogout}
-          style={{
-            ...buttonStyle,
-            background: "#EF4444",
-          }}
-        >
-          Logout
-        </button>
-      </header>
+        <nav className="sidebar-section" aria-label="Primary">
+          <span className="sidebar-section-label">Analytics</span>
+          <div className="sidebar-nav-list" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {navItems.map((item) => (
+              <Link
+                key={item.key}
+                to={item.to}
+                className={`nav-link ${view === item.key ? "is-active" : ""}`}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </div>
+        </nav>
 
-      <nav
-        style={{
-          display: "flex",
-          gap: "10px",
-          flexWrap: "wrap",
-          marginBottom: "20px",
-        }}
-      >
-        <Link to="/dashboard" style={view === "overview" ? activeNavStyle : navStyle}>
-          Overview
-        </Link>
-        <Link to="/programme" style={view === "programme" ? activeNavStyle : navStyle}>
-          By Programme
-        </Link>
-        <Link to="/graduation" style={view === "graduation" ? activeNavStyle : navStyle}>
-          By Graduation Year
-        </Link>
-        <Link to="/industry" style={view === "industry" ? activeNavStyle : navStyle}>
-          By Industry
-        </Link>
-        <Link to="/usage" style={view === "usage" ? activeNavStyle : navStyle}>
-          API Usage
-        </Link>
-      </nav>
+        <div className="sidebar-footer">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="btn btn-ghost btn-block"
+          >
+            <Icon
+              d={
+                <>
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </>
+              }
+            />
+            <span>Sign out</span>
+          </button>
+        </div>
+      </aside>
 
-      {error && (
-        <p style={{ color: "#B91C1C", marginBottom: "12px" }}>{error}</p>
-      )}
+      <main className="main dashboard">
+        <header className="page-header">
+          <div>
+            <h1>{meta.title}</h1>
+            <p className="page-subtitle">{meta.subtitle}</p>
+          </div>
+        </header>
 
-      <div
-        style={{
-          marginBottom: "20px",
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "12px",
-          alignItems: "center",
-        }}
-      >
-        <button
-          onClick={() => downloadCSV(exportRows, "filtered-dashboard-data.csv")}
-          style={{
-            ...buttonStyle,
-            background: "#3B82F6",
-          }}
-        >
-          Export Filtered Data (CSV)
-        </button>
+        {error && (
+          <div className="alert alert-info" style={{ marginBottom: 16 }}>
+            {error}
+          </div>
+        )}
 
-        <button
-          onClick={exportDashboardPDF}
-          style={{
-            ...buttonStyle,
-            background: "#10B981",
-          }}
-        >
-          Export Dashboard PDF
-        </button>
-
-        <select
-          value={selectedProgramme}
-          onChange={(e) => setSelectedProgramme(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "8px",
-            border: "1px solid #D1D5DB",
-          }}
-        >
-          <option value="">All Programmes</option>
-          {programmes.map((p, index) => (
-            <option key={index} value={p.programme}>
-              {p.programme || "Unknown"}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "8px",
-            border: "1px solid #D1D5DB",
-          }}
-        >
-          <option value="">All Graduation Years</option>
-          {years.map((year, index) => (
-            <option key={index} value={year}>
-              {year}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={selectedIndustry}
-          onChange={(e) => setSelectedIndustry(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "8px",
-            border: "1px solid #D1D5DB",
-          }}
-        >
-          <option value="">All Industry Sectors</option>
-          {industries.map((industry, index) => (
-            <option key={index} value={industry.industry_sector}>
-              {industry.industry_sector || "Unknown"}
-            </option>
-          ))}
-        </select>
-
-        <button
-          onClick={() => {
-            setSelectedProgramme("");
-            setSelectedYear("");
-            setSelectedIndustry("");
-          }}
-          style={{
-            ...buttonStyle,
-            background: "#6B7280",
-          }}
-        >
-          Reset Filters
-        </button>
-
-        <button
-          onClick={savePreset}
-          style={{
-            ...buttonStyle,
-            background: "#8B5CF6",
-          }}
-        >
-          Save Filter Preset
-        </button>
-      </div>
-
-      {savedFilters.length > 0 && (
-        <div style={{ marginBottom: "20px" }}>
-          <strong>Saved Presets: </strong>
-          {savedFilters.map((preset, index) => (
+        <div className="toolbar">
+          <div className="toolbar-group">
             <button
-              key={index}
-              onClick={() => applyPreset(preset)}
-              style={{
-                marginLeft: "8px",
-                marginTop: "6px",
-                padding: "8px 12px",
-                background: "#E5E7EB",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
-              }}
+              onClick={() =>
+                downloadCSV(exportRows, "filtered-dashboard-data.csv")
+              }
+              className="btn btn-primary btn-sm"
             >
-              Preset {index + 1}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {view === "overview" && (
-        <>
-          <section className="cards">
-            <div className="card">
-              <h3>Total Alumni</h3>
-              <p>{summary?.total_alumni || 0}</p>
-            </div>
-
-            <div className="card">
-              <h3>Currently Employed</h3>
-              <p>{summary?.employed || 0}</p>
-            </div>
-
-            <div className="card">
-              <h3>Programmes Tracked</h3>
-              <p>{programmes.length}</p>
-            </div>
-
-            <div className="card">
-              <h3>Top Employers</h3>
-              <p>{employers.length}</p>
-            </div>
-
-            <div className="card">
-              <h3>API Endpoints Tracked</h3>
-              <p>{usage.length}</p>
-            </div>
-          </section>
-
-          <h2 style={{ marginBottom: "10px" }}>Overview</h2>
-
-          <section className="charts-grid">
-            <div className="chart-card">
-              <h2>Top Certifications / Skills Gap</h2>
-              <p>
-                Colour coding highlights emerging, significant, and critical
-                skills gaps based on certification demand.
-              </p>
-              <Bar
-                id="certificationChart"
-                data={certificationChart}
-                options={certificationOptions}
+              <Icon
+                d={
+                  <>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </>
+                }
               />
+              Export CSV
+            </button>
+
+            <button
+              onClick={exportDashboardPDF}
+              className="btn btn-accent btn-sm"
+            >
+              <Icon
+                d={
+                  <>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </>
+                }
+              />
+              Export PDF
+            </button>
+          </div>
+
+          <div className="toolbar-divider" />
+
+          <div className="toolbar-group">
+            <select
+              value={selectedProgramme}
+              onChange={(e) => setSelectedProgramme(e.target.value)}
+              className="select"
+              aria-label="Filter by programme"
+            >
+              <option value="">All Programmes</option>
+              {programmes.map((p, index) => (
+                <option key={index} value={p.programme}>
+                  {p.programme || "Unknown"}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="select"
+              aria-label="Filter by graduation year"
+            >
+              <option value="">All Graduation Years</option>
+              {years.map((year, index) => (
+                <option key={index} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedIndustry}
+              onChange={(e) => setSelectedIndustry(e.target.value)}
+              className="select"
+              aria-label="Filter by industry"
+            >
+              <option value="">All Industry Sectors</option>
+              {industries.map((industry, index) => (
+                <option key={index} value={industry.industry_sector}>
+                  {industry.industry_sector || "Unknown"}
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={() => {
+                setSelectedProgramme("");
+                setSelectedYear("");
+                setSelectedIndustry("");
+              }}
+              className="btn btn-outline btn-sm"
+            >
+              Reset
+            </button>
+
+            <button onClick={savePreset} className="btn btn-ghost btn-sm">
+              Save preset
+            </button>
+          </div>
+        </div>
+
+        {savedFilters.length > 0 && (
+          <div className="preset-row">
+            <span style={{ fontWeight: 500, color: "var(--muted-strong)" }}>
+              Saved presets:
+            </span>
+            {savedFilters.map((preset, index) => (
               <button
-                style={pngButtonStyle}
-                onClick={() =>
+                key={index}
+                onClick={() => applyPreset(preset)}
+                className="preset-chip"
+              >
+                Preset {index + 1}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {view === "overview" && (
+          <>
+            <section className="kpi-grid">
+              <KpiCard
+                label="Total Alumni"
+                value={summary?.total_alumni || 0}
+                icon={
+                  <Icon
+                    d={
+                      <>
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                      </>
+                    }
+                  />
+                }
+              />
+              <KpiCard
+                label="Currently Employed"
+                value={summary?.employed || 0}
+                icon={
+                  <Icon
+                    d={
+                      <>
+                        <rect x="2" y="7" width="20" height="14" rx="2" />
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                      </>
+                    }
+                  />
+                }
+              />
+              <KpiCard
+                label="Programmes Tracked"
+                value={programmes.length}
+                icon={
+                  <Icon
+                    d={
+                      <>
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                        <path d="M6 12v5c0 1.66 4 3 6 3s6-1.34 6-3v-5" />
+                      </>
+                    }
+                  />
+                }
+              />
+              <KpiCard
+                label="Top Employers"
+                value={employers.length}
+                icon={
+                  <Icon
+                    d={
+                      <>
+                        <path d="M3 21V8l9-5 9 5v13" />
+                        <path d="M9 21v-6h6v6" />
+                      </>
+                    }
+                  />
+                }
+              />
+              <KpiCard
+                label="API Endpoints"
+                value={usage.length}
+                icon={
+                  <Icon
+                    d={
+                      <>
+                        <polyline points="16 18 22 12 16 6" />
+                        <polyline points="8 6 2 12 8 18" />
+                      </>
+                    }
+                  />
+                }
+              />
+            </section>
+
+            <h2 className="page-section-title">Insights</h2>
+
+            <section className="charts-grid">
+              <ChartCard
+                title="Top Certifications / Skills Gap"
+                subtitle="Colour coding highlights emerging, significant, and critical skills gaps based on certification demand."
+                onDownload={() =>
                   downloadChart("certificationChart", "certification-skills-gap")
                 }
               >
-                Download PNG
-              </button>
-            </div>
+                <Bar
+                  id="certificationChart"
+                  data={certificationChart}
+                  options={certificationOptions}
+                />
+              </ChartCard>
 
-            <div className="chart-card">
-              <h2>Most Common Job Titles</h2>
-              <p>Highlights emerging graduate career pathways.</p>
-              <Doughnut id="jobChart" data={jobChart} />
-              <button
-                style={pngButtonStyle}
-                onClick={() => downloadChart("jobChart", "job-titles")}
+              <ChartCard
+                title="Most Common Job Titles"
+                subtitle="Highlights emerging graduate career pathways."
+                onDownload={() => downloadChart("jobChart", "job-titles")}
               >
-                Download PNG
-              </button>
-            </div>
+                <Doughnut
+                  id="jobChart"
+                  data={jobChart}
+                  options={baseChartOptions}
+                />
+              </ChartCard>
 
-            <div className="chart-card">
-                <h2>Alumni by Programme</h2>
-                <p>Shows alumni distribution across academic programmes.</p>
+              <ChartCard
+                title="Alumni by Programme"
+                subtitle="Distribution across academic programmes."
+                onDownload={() =>
+                  downloadChart("overviewProgrammeChart", "overview-programme-chart")
+                }
+              >
                 <Bar
                   id="overviewProgrammeChart"
                   data={programmeChart}
                   options={programmeOptions}
                 />
-                <button
-                  style={pngButtonStyle}
-                  onClick={() =>
-                    downloadChart("overviewProgrammeChart", "overview-programme-chart")
-                  }
-                >
-                  Download PNG
-                </button>
-              </div>
+              </ChartCard>
 
-              <div className="chart-card">
-                <h2>Graduation Trends</h2>
-                <p>Shows alumni distribution by graduation year.</p>
+              <ChartCard
+                title="Graduation Trends"
+                subtitle="Distribution by graduation year."
+                onDownload={() =>
+                  downloadChart("overviewTrendChart", "overview-graduation-trends")
+                }
+              >
                 <Line
                   id="overviewTrendChart"
                   data={trendChart}
                   options={trendOptions}
                 />
-                <button
-                  style={pngButtonStyle}
-                  onClick={() =>
-                    downloadChart("overviewTrendChart", "overview-graduation-trends")
-                  }
-                >
-                  Download PNG
-                </button>
-              </div>
+              </ChartCard>
 
-            <div className="chart-card">
-              <h2>Top Employers</h2>
-              <p>Shows employers hiring the most alumni.</p>
-              <Bar id="employerChart" data={employerChart} options={employerOptions} />
-              <button
-                style={pngButtonStyle}
-                onClick={() => downloadChart("employerChart", "top-employers")}
+              <ChartCard
+                title="Top Employers"
+                subtitle="Employers hiring the most alumni."
+                onDownload={() => downloadChart("employerChart", "top-employers")}
               >
-                Download PNG
-              </button>
-            </div>
+                <Bar
+                  id="employerChart"
+                  data={employerChart}
+                  options={employerOptions}
+                />
+              </ChartCard>
 
-            <div className="chart-card">
-              <h2>System Overview Radar</h2>
-              <p>Compares major data categories stored in the system.</p>
-              <Radar id="radarChart" data={radarChart} />
-              <button
-                style={pngButtonStyle}
-                onClick={() => downloadChart("radarChart", "system-radar")}
+              <ChartCard
+                title="System Overview Radar"
+                subtitle="Compares major data categories stored in the system."
+                onDownload={() => downloadChart("radarChart", "system-radar")}
               >
-                Download PNG
-              </button>
-            </div>
-          </section>
-        </>
-      )}
+                <Radar id="radarChart" data={radarChart} options={radarOptions} />
+              </ChartCard>
+            </section>
+          </>
+        )}
 
-      {view === "programme" && (
-        <>
-          <h2>Alumni by Programme</h2>
-          <p>
-            This page allows the university to compare alumni outcomes across
-            different academic programmes.
-          </p>
-
+        {view === "programme" && (
           <section className="charts-grid">
-            <div className="chart-card">
-              <h2>Programme Distribution</h2>
+            <ChartCard
+              title="Programme Distribution"
+              subtitle="Alumni counts per academic programme."
+              onDownload={() => downloadChart("programmeChart", "programme-chart")}
+            >
               <Bar
                 id="programmeChart"
                 data={programmeChart}
                 options={programmeOptions}
               />
-              <button
-                style={pngButtonStyle}
-                onClick={() => downloadChart("programmeChart", "programme-chart")}
-              >
-                Download PNG
-              </button>
-            </div>
+            </ChartCard>
 
-            <div className="chart-card">
-              <h2>Programme Insight</h2>
+            <div className="insight-card">
+              <h3>Programme insight</h3>
               <p>
-                This chart can help identify which programmes have the strongest
+                This view helps identify which programmes have the strongest
                 graduate tracking data and where further alumni engagement may
                 be required.
               </p>
             </div>
           </section>
-        </>
-      )}
+        )}
 
-      {view === "graduation" && (
-        <>
-          <h2>Alumni by Graduation Year</h2>
-          <p>
-            This page shows graduate tracking trends across different graduation
-            cohorts.
-          </p>
-
+        {view === "graduation" && (
           <section className="charts-grid">
-            <div className="chart-card">
-              <h2>Graduation Trends</h2>
+            <ChartCard
+              title="Graduation Trends"
+              subtitle="Cohort sizes across graduation years."
+              onDownload={() => downloadChart("trendChart", "graduation-trends")}
+            >
               <Line id="trendChart" data={trendChart} options={trendOptions} />
-              <button
-                style={pngButtonStyle}
-                onClick={() => downloadChart("trendChart", "graduation-trends")}
-              >
-                Download PNG
-              </button>
-            </div>
+            </ChartCard>
 
-            <div className="chart-card">
-              <h2>Graduation Year Insight</h2>
+            <div className="insight-card">
+              <h3>Graduation year insight</h3>
               <p>
                 Year-based trends help the university understand how recent and
                 older cohorts are represented in the alumni dataset.
               </p>
             </div>
           </section>
-        </>
-      )}
+        )}
 
-      {view === "industry" && (
-        <>
-          <h2>Alumni by Industry Sector</h2>
-          <p>
-            This page shows the industries where alumni are currently employed.
-          </p>
-
+        {view === "industry" && (
           <section className="charts-grid">
-            <div className="chart-card">
-              <h2>Employment by Industry Sector</h2>
-              <Pie id="industryChart" data={industryChart} />
-              <button
-                style={pngButtonStyle}
-                onClick={() => downloadChart("industryChart", "industry-sector")}
-              >
-                Download PNG
-              </button>
-            </div>
+            <ChartCard
+              title="Employment by Industry Sector"
+              subtitle="Where alumni are currently employed."
+              onDownload={() => downloadChart("industryChart", "industry-sector")}
+            >
+              <Pie
+                id="industryChart"
+                data={industryChart}
+                options={baseChartOptions}
+              />
+            </ChartCard>
 
-            <div className="chart-card">
-              <h2>Industry Insight</h2>
+            <div className="insight-card">
+              <h3>Industry insight</h3>
               <p>
                 Industry analysis helps the university identify graduate
                 destination patterns and emerging employment sectors.
               </p>
             </div>
           </section>
-        </>
-      )}
+        )}
 
-      {view === "usage" && (
-        <>
-          <h2>API Usage Statistics</h2>
-          <p>
-            This page shows how often dashboard API endpoints are accessed,
-            supporting monitoring and security analysis.
-          </p>
-
+        {view === "usage" && (
           <section className="charts-grid">
-            <div className="chart-card">
-              <h2>Endpoint Usage</h2>
+            <ChartCard
+              title="Endpoint Usage"
+              subtitle="API calls grouped by endpoint."
+              onDownload={() => downloadChart("usageChart", "api-usage")}
+            >
               <Bar id="usageChart" data={usageChart} options={usageOptions} />
-              <button
-                style={pngButtonStyle}
-                onClick={() => downloadChart("usageChart", "api-usage")}
-              >
-                Download PNG
-              </button>
-            </div>
+            </ChartCard>
 
-            <div className="chart-card">
-              <h2>Usage Insight</h2>
+            <div className="insight-card">
+              <h3>Usage insight</h3>
               <p>
                 API usage statistics help monitor client activity, endpoint
                 popularity, and API key-based access patterns.
               </p>
             </div>
           </section>
-        </>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function KpiCard({ label, value, icon }) {
+  return (
+    <div className="kpi-card">
+      <div className="kpi-card-header">
+        <span className="kpi-label">{label}</span>
+        <span className="kpi-icon">{icon}</span>
+      </div>
+      <div className="kpi-value">{value}</div>
+    </div>
+  );
+}
+
+function ChartCard({ title, subtitle, onDownload, children }) {
+  return (
+    <div className="chart-card">
+      <div className="chart-card-header">
+        <div>
+          <h3>{title}</h3>
+          {subtitle && <p className="chart-card-subtitle">{subtitle}</p>}
+        </div>
+      </div>
+      <div className="chart-canvas-wrap">{children}</div>
+      {onDownload && (
+        <div className="chart-card-footer">
+          <button onClick={onDownload} className="btn btn-outline btn-sm">
+            <Icon
+              d={
+                <>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </>
+              }
+            />
+            Download PNG
+          </button>
+        </div>
       )}
     </div>
   );
