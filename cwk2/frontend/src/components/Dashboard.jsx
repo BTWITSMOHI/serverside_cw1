@@ -650,6 +650,42 @@ export default function Dashboard({ view = "overview" }) {
             </div>
 
             <div className="chart-card">
+                <h2>Alumni by Programme</h2>
+                <p>Shows alumni distribution across academic programmes.</p>
+                <Bar
+                  id="overviewProgrammeChart"
+                  data={programmeChart}
+                  options={programmeOptions}
+                />
+                <button
+                  style={pngButtonStyle}
+                  onClick={() =>
+                    downloadChart("overviewProgrammeChart", "overview-programme-chart")
+                  }
+                >
+                  Download PNG
+                </button>
+              </div>
+
+              <div className="chart-card">
+                <h2>Graduation Trends</h2>
+                <p>Shows alumni distribution by graduation year.</p>
+                <Line
+                  id="overviewTrendChart"
+                  data={trendChart}
+                  options={trendOptions}
+                />
+                <button
+                  style={pngButtonStyle}
+                  onClick={() =>
+                    downloadChart("overviewTrendChart", "overview-graduation-trends")
+                  }
+                >
+                  Download PNG
+                </button>
+              </div>
+
+            <div className="chart-card">
               <h2>Top Employers</h2>
               <p>Shows employers hiring the most alumni.</p>
               <Bar id="employerChart" data={employerChart} options={employerOptions} />
