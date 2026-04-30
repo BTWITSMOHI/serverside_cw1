@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import AuthLayout from "../components/AuthLayout";
 
 export default function ResetPassword() {
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleReset = async (e) => {
     e.preventDefault();
     setMessage("");
+    setIsError(false);
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:5001/api/auth/reset-password", {
@@ -22,6 +27,7 @@ export default function ResetPassword() {
       const data = await res.json();
 
       if (!res.ok) {
+        setIsError(true);
         setMessage(data.message || "Password reset failed");
         return;
       }
@@ -29,53 +35,70 @@ export default function ResetPassword() {
       setMessage(data.message || "Password reset successful");
     } catch (error) {
       console.error(error);
+      setIsError(true);
       setMessage("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "40px", maxWidth: "450px", margin: "auto" }}>
-      <h2>Reset Password</h2>
+    <AuthLayout
+      eyebrow="Account recovery"
+      title="Set a new password"
+      subtitle="Paste your reset token and choose a new password to regain access."
+    >
+      <form onSubmit={handleReset} className="auth-form">
+        <div className="field">
+          <label htmlFor="token" className="field-label">
+            Reset token
+          </label>
+          <input
+            id="token"
+            type="text"
+            className="input"
+            placeholder="Paste your reset token"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            required
+          />
+        </div>
 
-      <form onSubmit={handleReset}>
-        <input
-          type="text"
-          placeholder="Paste reset token"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          required
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-        />
+        <div className="field">
+          <label htmlFor="newPassword" className="field-label">
+            New password
+          </label>
+          <input
+            id="newPassword"
+            type="password"
+            className="input"
+            placeholder="e.g. NewPassword123"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          placeholder="New password e.g. NewPassword123"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          required
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-        />
+        {message && (
+          <div className={isError ? "alert alert-error" : "alert alert-success"}>
+            {message}
+          </div>
+        )}
 
         <button
           type="submit"
-          style={{
-            width: "100%",
-            padding: "10px",
-            background: "#8B5CF6",
-            color: "white",
-            border: "none",
-            borderRadius: "6px"
-          }}
+          className="btn btn-primary btn-block"
+          disabled={loading}
         >
-          Reset Password
+          {loading ? "Updating..." : "Reset password"}
         </button>
       </form>
 
-      {message && <p>{message}</p>}
-
-      <p>
-        Back to <Link to="/">Login</Link>
-      </p>
-    </div>
+      <div className="auth-meta">
+        <span>
+          Back to <Link to="/">Sign in</Link>
+        </span>
+      </div>
+    </AuthLayout>
   );
 }

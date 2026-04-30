@@ -1,5 +1,5 @@
-const API_BASE = "http://localhost:5001";
-const API_KEY = "dashboard_key_123";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5001";
+const API_KEY = import.meta.env.VITE_API_KEY || "dashboard_key_123";
 
 export async function fetchData(endpoint) {
   const res = await fetch(`${API_BASE}${endpoint}`, {
