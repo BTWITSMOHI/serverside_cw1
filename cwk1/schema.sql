@@ -25,7 +25,7 @@ CREATE TABLE users (
 
 -- =========================
 -- TOKENS
--- For email verification + password reset
+-- email verification + password reset
 -- =========================
 CREATE TABLE tokens (
   id SERIAL PRIMARY KEY,
@@ -39,7 +39,7 @@ CREATE TABLE tokens (
 
 -- =========================
 -- REVOKED TOKENS
--- For secure logout
+-- secure logout
 -- =========================
 CREATE TABLE revoked_tokens (
   id SERIAL PRIMARY KEY,
@@ -49,7 +49,7 @@ CREATE TABLE revoked_tokens (
 
 -- =========================
 -- PROFILES
--- One profile per user + analytics fields for CW2
+-- alumni profile + analytics fields
 -- =========================
 CREATE TABLE profiles (
   id SERIAL PRIMARY KEY,
@@ -108,6 +108,7 @@ CREATE TABLE employment (
 
 -- =========================
 -- BIDS
+-- blind bidding system
 -- =========================
 CREATE TABLE bids (
   id SERIAL PRIMARY KEY,
@@ -119,7 +120,7 @@ CREATE TABLE bids (
 
 -- =========================
 -- API KEYS
--- For CW2 scoped client access
+-- scoped client access
 -- =========================
 CREATE TABLE api_keys (
   id SERIAL PRIMARY KEY,
@@ -134,7 +135,7 @@ CREATE TABLE api_keys (
 
 -- =========================
 -- API USAGE LOGS
--- Tracks endpoint usage by API key/client
+-- endpoint usage by API key/client
 -- =========================
 CREATE TABLE api_usage_logs (
   id SERIAL PRIMARY KEY,
